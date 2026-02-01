@@ -6,14 +6,38 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
-import { AnalysisResult } from "../services/api";
+import { AnalysisResult, EbaySimilarItem } from "../services/api";
 
 type RootStackParamList = {
   Result: { result: AnalysisResult };
 };
+
+function SimilarItemCard({ item }: { item: EbaySimilarItem }) {
+  return (
+    <TouchableOpacity
+      style={styles.similarCard}
+      onPress={() => item.link && Linking.openURL(item.link)}
+    >
+      {item.imageUrl ? (
+        <Image source={{ uri: item.imageUrl }} style={styles.similarImage} />
+      ) : (
+        <View style={[styles.similarImage, styles.placeholder]} />
+      )}
+      <View style={styles.similarInfo}>
+        <Text style={styles.similarTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        <Text style={styles.similarPrice}>
+          {item.price} {item.currency}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function ResultScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "Result">>();
@@ -54,6 +78,15 @@ export default function ResultScreen() {
           </View>
         ) : null}
       </View>
+
+      {result.similarItems && result.similarItems.length > 0 ? (
+        <View style={styles.similarSection}>
+          <Text style={styles.sectionTitle}>Ventes similaires (eBay)</Text>
+          {result.similarItems.map((item, index) => (
+            <SimilarItemCard key={index} item={item} />
+          ))}
+        </View>
+      ) : null}
 
       <TouchableOpacity
         style={styles.button}
@@ -114,6 +147,50 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#2563eb",
+  },
+  similarSection: {
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 12,
+  },
+  similarCard: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  similarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 6,
+  },
+  placeholder: {
+    backgroundColor: "#e5e7eb",
+  },
+  similarInfo: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: "center",
+  },
+  similarTitle: {
+    fontSize: 14,
+    color: "#111827",
+  },
+  similarPrice: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#059669",
+    marginTop: 4,
   },
   button: {
     backgroundColor: "#2563eb",
